@@ -50,7 +50,7 @@
     document.body.appendChild(frame);
 
     // ----------------------------------------------------
-    // 2. CHỨC NĂNG KÉO THẢ NÚT VỀ TRANG CHỦ
+    // 2. CHỨC NĂNG KÉO THẢ (ĐÃ SỬA LỖI TRƯỢT CHUỘT)
     // ----------------------------------------------------
     const btn = document.getElementById("dragBtn");
     
@@ -58,13 +58,15 @@
     let isPressed = false;
     let offsetX = 0, offsetY = 0;
 
-    // Ngăn chặn hành vi kéo link mặc định của trình duyệt
     btn.addEventListener("dragstart", (e) => e.preventDefault());
 
-    // Khi người dùng bắt đầu nhấn chuột / chạm ngón tay
+    // Khi BẮT ĐẦU kéo
     const startDrag = (e) => {
       isPressed = true;
       isDragging = false;
+      
+      // FIX LỖI: Khóa tương tác chuột của iframe để không bị "nuốt" sự kiện
+      frame.style.pointerEvents = "none";
       
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -74,10 +76,10 @@
       offsetY = clientY - rect.top;
     };
 
-    // Khi người dùng di chuyển (kéo)
+    // Khi ĐANG kéo
     const doDrag = (e) => {
       if (!isPressed) return;
-      isDragging = true; // Đánh dấu là hệ thống đang kéo chứ không phải click
+      isDragging = true; 
       
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -85,7 +87,6 @@
       let newX = clientX - offsetX;
       let newY = clientY - offsetY;
       
-      // Giới hạn để nút không bị kéo bay mất
       const maxX = window.innerWidth - btn.offsetWidth;
       const maxY = window.innerHeight - btn.offsetHeight;
       newX = Math.max(0, Math.min(newX, maxX));
@@ -96,18 +97,24 @@
       btn.style.bottom = "auto"; 
     };
 
-    // Khi người dùng thả tay ra
+    // Khi KẾT THÚC kéo (nhả chuột/tay)
     const endDrag = () => { 
-      // Dùng setTimeout để đảm bảo sự kiện click (nếu có) kịp nhận diện isDragging trước khi reset
-      setTimeout(() => { isPressed = false; }, 50); 
+      if (isPressed) {
+        isPressed = false;
+        // FIX LỖI: Mở lại tương tác cho iframe để học sinh làm bài
+        frame.style.pointerEvents = "auto";
+        
+        // Chờ 50 mili-giây mới tắt cờ isDragging để chặn sự kiện click
+        setTimeout(() => { isDragging = false; }, 50); 
+      }
     };
 
-    // Bắt sự kiện trên Máy tính (Chuột)
+    // Sự kiện Chuột (Máy tính)
     btn.addEventListener("mousedown", startDrag);
     document.addEventListener("mousemove", doDrag);
     document.addEventListener("mouseup", endDrag);
 
-    // Bắt sự kiện trên Điện thoại (Cảm ứng)
+    // Sự kiện Cảm ứng (Điện thoại)
     btn.addEventListener("touchstart", startDrag, { passive: false });
     document.addEventListener("touchmove", (e) => {
       if (isPressed) e.preventDefault();
@@ -116,20 +123,14 @@
     document.addEventListener("touchend", endDrag);
 
     // ----------------------------------------------------
-    // 3. XỬ LÝ CLICK VÀ HỘP THOẠI XÁC NHẬN
+    // 3. XÁC NHẬN KHI BẤM VỀ TRANG CHỦ
     // ----------------------------------------------------
     btn.addEventListener("click", (e) => {
       if (isDragging) {
-        // Nếu học sinh đang kéo thả nút -> Hủy lệnh click, không làm gì cả
         e.preventDefault(); 
       } else {
-        // Nếu học sinh thực sự bấm (không kéo) -> Hiện thông báo xác nhận
         const xacNhan = confirm("Bạn có chắc chắn muốn quay về Trang chủ?\n\n⚠️ LƯU Ý: Nếu chưa nộp bài, kết quả của bạn sẽ bị mất!");
-        
-        if (!xacNhan) {
-          // Nếu bấm "Hủy" (Cancel) -> Chặn lệnh chuyển trang, tiếp tục ở lại làm bài
-          e.preventDefault();
-        }
+        if (!xacNhan) e.preventDefault();
       }
     });
   </script>
