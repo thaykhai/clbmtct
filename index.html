@@ -23,9 +23,9 @@
       font-size: 14px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       z-index: 9999;
-      cursor: grab; /* Hiện con trỏ bàn tay cầm nắm */
-      user-select: none; /* Ngăn bôi đen text khi kéo */
-      touch-action: none; /* Ngăn trình duyệt cuộn khi kéo trên điện thoại */
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
     }
     .home-btn:active { cursor: grabbing; }
   </style>
@@ -37,12 +37,10 @@
     🏠 Về Trang Chủ
   </a>
 
-  <!-- Script quản lý Iframe và Chức năng Kéo Thả -->
   <script>
     // ----------------------------------------------------
     // 1. NHÚNG GOOGLE APPS SCRIPT
     // ----------------------------------------------------
-    // THẦY NHỚ DÁN CHUỖI BASE64 VÀO DƯỚI ĐÂY NHÉ:
     const _0xlnk = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3UENCNDROZHlLOGFuQUxOUmJSZWRqX2tkQmtwc2p1N1UybFM0Rm1lblBOZnU0aFpaV3dIX1FLMU94MENCb3pSN2ZVQS9leGVj"; 
     
     const frame = document.createElement("iframe");
@@ -60,10 +58,13 @@
     let isPressed = false;
     let offsetX = 0, offsetY = 0;
 
+    // QUAN TRỌNG: Ngăn chặn hành vi kéo link mặc định của trình duyệt gây lỗi dính chuột
+    btn.addEventListener("dragstart", (e) => e.preventDefault());
+
     // Khi người dùng bắt đầu nhấn chuột / chạm ngón tay
     const startDrag = (e) => {
       isPressed = true;
-      isDragging = false; // Đặt lại trạng thái kéo
+      isDragging = false;
       
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -76,7 +77,7 @@
     // Khi người dùng di chuyển (kéo)
     const doDrag = (e) => {
       if (!isPressed) return;
-      isDragging = true; // Đánh dấu là đang có thao tác kéo
+      isDragging = true;
       
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -90,7 +91,6 @@
       newX = Math.max(0, Math.min(newX, maxX));
       newY = Math.max(0, Math.min(newY, maxY));
       
-      // Cập nhật vị trí mới
       btn.style.left = newX + "px";
       btn.style.top = newY + "px";
       btn.style.bottom = "auto"; 
@@ -107,15 +107,15 @@
     // Bắt sự kiện trên Điện thoại (Cảm ứng)
     btn.addEventListener("touchstart", startDrag, { passive: false });
     document.addEventListener("touchmove", (e) => {
-      if (isPressed) e.preventDefault(); // Ngăn cuộn trang web khi đang kéo nút
+      if (isPressed) e.preventDefault();
       doDrag(e);
     }, { passive: false });
     document.addEventListener("touchend", endDrag);
 
-    // Ngăn chặn chuyển trang nếu học sinh vừa thực hiện hành động KÉO
+    // Phân biệt kéo thả và bấm chuyển trang
     btn.addEventListener("click", (e) => {
       if (isDragging) {
-        e.preventDefault(); // Hủy lệnh click (không về trang chủ), chỉ dừng ở vị trí mới
+        e.preventDefault(); 
       }
     });
   </script>
