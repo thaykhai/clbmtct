@@ -58,7 +58,7 @@
     let isPressed = false;
     let offsetX = 0, offsetY = 0;
 
-    // QUAN TRỌNG: Ngăn chặn hành vi kéo link mặc định của trình duyệt gây lỗi dính chuột
+    // Ngăn chặn hành vi kéo link mặc định của trình duyệt
     btn.addEventListener("dragstart", (e) => e.preventDefault());
 
     // Khi người dùng bắt đầu nhấn chuột / chạm ngón tay
@@ -77,7 +77,7 @@
     // Khi người dùng di chuyển (kéo)
     const doDrag = (e) => {
       if (!isPressed) return;
-      isDragging = true;
+      isDragging = true; // Đánh dấu là hệ thống đang kéo chứ không phải click
       
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
@@ -85,7 +85,7 @@
       let newX = clientX - offsetX;
       let newY = clientY - offsetY;
       
-      // Giới hạn để nút không bị kéo bay mất ra khỏi màn hình
+      // Giới hạn để nút không bị kéo bay mất
       const maxX = window.innerWidth - btn.offsetWidth;
       const maxY = window.innerHeight - btn.offsetHeight;
       newX = Math.max(0, Math.min(newX, maxX));
@@ -97,7 +97,10 @@
     };
 
     // Khi người dùng thả tay ra
-    const endDrag = () => { isPressed = false; };
+    const endDrag = () => { 
+      // Dùng setTimeout để đảm bảo sự kiện click (nếu có) kịp nhận diện isDragging trước khi reset
+      setTimeout(() => { isPressed = false; }, 50); 
+    };
 
     // Bắt sự kiện trên Máy tính (Chuột)
     btn.addEventListener("mousedown", startDrag);
@@ -112,10 +115,21 @@
     }, { passive: false });
     document.addEventListener("touchend", endDrag);
 
-    // Phân biệt kéo thả và bấm chuyển trang
+    // ----------------------------------------------------
+    // 3. XỬ LÝ CLICK VÀ HỘP THOẠI XÁC NHẬN
+    // ----------------------------------------------------
     btn.addEventListener("click", (e) => {
       if (isDragging) {
+        // Nếu học sinh đang kéo thả nút -> Hủy lệnh click, không làm gì cả
         e.preventDefault(); 
+      } else {
+        // Nếu học sinh thực sự bấm (không kéo) -> Hiện thông báo xác nhận
+        const xacNhan = confirm("Bạn có chắc chắn muốn quay về Trang chủ?\n\n⚠️ LƯU Ý: Nếu chưa nộp bài, kết quả của bạn sẽ bị mất!");
+        
+        if (!xacNhan) {
+          // Nếu bấm "Hủy" (Cancel) -> Chặn lệnh chuyển trang, tiếp tục ở lại làm bài
+          e.preventDefault();
+        }
       }
     });
   </script>
